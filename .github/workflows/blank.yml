@@ -1,27 +1,26 @@
-name: 'test AWS Access'
- 
-# The workflow should only trigger on pull requests to the main branch
+name: Azure Login with Managed Identity
+
 on:
-  workflow_dispatch:
- 
-# Required to get the ID Token that will be used for OIDC
-permissions:
-  id-token: write
-  contents: read # needed for private repos to checkout
- 
+  push:
+    branches:
+      - main
+
 jobs:
-  aws:
+  azure-login:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
- 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Azure CLI
+        uses: azure/setup-azure-cli@v1
+
+      - name: Login with Managed Identity
+        uses: azure/login@v1
         with:
-          aws-region: "us-east-1"
-          role-to-assume: arn:aws:iam::400632018843:role/sts-lab-2-target
-          role-session-name: OIDCSession
- 
-      - run: aws secretsmanager get-secret-value --secret-id arn:aws:secretsmanager:us-east-1:400632018843:secret:flag_sts_lab_2-tOuVWC
-        shell: bash
+          client-id: <your-client-id>
+          tenant-id: azure.training.hacktricks.xyz
+
+      - name: List Storage Blob
+        run: |
+          az storage blob list --account-name iamazurelab3331fa542 --container-name flag.txt --auth-mode login
